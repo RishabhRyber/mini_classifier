@@ -2,6 +2,8 @@ import pandas as pd
 import mysql.connector
 import numpy as np
 from sklearn import tree
+import pickle
+import os.path
 
 con  = mysql.connector.connect(
     host="localhost",
@@ -49,8 +51,30 @@ def getSymptomName(code):
     for i in cur:
         return(i[0])
 
+def save_classifer(clf,symptom_code,disease_code):
+    file = open("classifier.pickle","wb")
+    pickle.dump(clf,file)
+    file.close()
+    file = open("disease.pickle","wb")
+    pickle.dump(disease_code,file)
+    file.close()
+    file = open("symptom.pickle","wb")
+    pickle.dump(symptom_code,file)
+    file.close()
 
-def startTest():
+def restore_classifier():
+    file = open("classifier.pickle","rb")
+    clf = pickle.load(file)
+    file.close()
+    file = open("disease.pickle","rb")
+    disease = pickle.load(file)
+    file.close()
+    file = open("symptom.pickle","rb")
+    symptom = pickle.load(file)
+    file.close()
+    return clf,disease,symptom
+
+def startTest(clf):
     tree = clf.tree_
     node = 0      #Index of root node
     while True:
@@ -64,19 +88,22 @@ def startTest():
         if tree.children_left[node] == tree.children_right[node]: #Check for leaf
             label = np.argmax(tree.value[node])
             print("We've reached a leaf")
-            print("Predicted Label is: {}".format(getDiseaseName(label)))
+            print("Predicted Label is:{} ,{}".format(diseaseCodes[label],getDiseaseName(diseaseCodes[label])))
             break
 
-diseaseCodes,symptomCode,relations = import_data()
 
-
-#classifer start
-clf = tree.DecisionTreeClassifier(criterion='entropy', splitter='best')
-clf = clf.fit(relations,diseaseCodes)
-#classifier done
-
-#demo prediction by whole feature set at once
-print(clf.predict([relations[10]]))
-print(diseaseCodes[10])
-
-startTest()
+if(os.path.isfile("classifier.pickle")):
+    clf,diseaseCodes,symptomCode = restore_classifier()
+    print("using saved classifier")
+else:
+    print("not using saved classifier")
+    diseaseCodes,symptomCode,relations = import_data()
+    #classifer start
+    clf = tree.DecisionTreeClassifier(criterion='entropy', splitter='best')
+    clf = clf.fit(relations,diseaseCodes)
+    #classifier done
+    #demo prediction by whole feature set at once
+    print(clf.predict([relations[10]]))
+    print(diseaseCodes[10])
+    save_classifer(clf,symptomCode,diseaseCodes)
+startTest(clf)
