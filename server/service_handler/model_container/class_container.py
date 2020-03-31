@@ -1,7 +1,7 @@
 import mysql.connector
-
+from service_handler.model_container import temp
 class question_session:
-    def __init__(self,id=-1,email="dummy@funny.com",option=-1):
+    def __init__(self,id=-1,email="dummy@funny.com"):
         self.id=id
         self.email=email
         self.con = mysql.connector.connect(
@@ -13,7 +13,7 @@ class question_session:
         self.choices = []
 
 
-    def fetch_info(self):
+    def fetch_info(self,option=-1):
         self.cur.execute("USE mini_data")
         if self.id == -1:
             print("lol")
@@ -28,9 +28,18 @@ class question_session:
             
         else:
             self.cur.execute("SELECT * from question_session where id = '{}'".format(self.id))
+            for i in self.cur:
+                if type(i[0])  == type(None):
+                    self.choices=option
+                    break
+                else:
+                    self.choices.append(i[0])
+                
 
     def getResponse(self):
-        for i in self.choices:
+        res=temp.getNext(self.choices)
+        res["id"] = self.id
+        return res
 
 
     def return_id(self):
