@@ -16,8 +16,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from django.conf.urls import url
-from service_handler.views import api
+from service_handler.views import api,first_api
 urlpatterns = [
     path('admin/', admin.site.urls),
     url(r'^api/', api, name = 'apis'),
+    url(r'^first/', first_api, name = 'first_api'),
 ]

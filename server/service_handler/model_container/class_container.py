@@ -21,7 +21,7 @@ class question_session:
             for i in self.cur:
                 if type(i[0])  == type(None):
                     self.id=1
-                else:
+                else:   
                     self.id=i[0]+1
             self.cur.execute("INSERT INTO question_session(id,email) VALUES({},'{}')".format(self.id,self.email))
             self.con.commit()
@@ -29,12 +29,17 @@ class question_session:
         else:
             self.cur.execute("SELECT * from question_session where id = '{}'".format(self.id))
             for i in self.cur:
-                if type(i[0])  == type(None):
-                    self.choices=option
+                print(i)
+                if type(i[1])  == type(None):
+                    self.choices=[option,]
                     break
                 else:
-                    self.choices.append(i[0])
-                
+                    self.email=i[2]
+                    s=i[1].replace('[','')
+                    s=s.replace(']','')
+                    s=s.replace(', ','')
+                    self.choices = [int(x) for x in s]+[option]                
+                    print(self.choices)
 
     def getResponse(self):
         res=temp.getNext(self.choices)
@@ -45,3 +50,11 @@ class question_session:
     def return_id(self):
         return self.id
     
+    def save_email(self):
+        self.cur.execute("UPDATE question_session set email = '{}'  where id = '{}'".format(self.email,self.id))
+        self.con.commit()
+    
+    def save_options(self):
+        self.cur.execute("UPDATE question_session set options = '{}'  where id = '{}'".format(self.choices,self.id))
+        
+        self.con.commit()
